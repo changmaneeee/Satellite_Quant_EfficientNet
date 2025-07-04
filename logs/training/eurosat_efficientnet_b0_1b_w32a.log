@@ -1,0 +1,67 @@
+/home/changmin/satellite_efficent/train.py:85: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = GradScaler(enabled=USE_AMP)
+
+--- Training efficientnet_b0 on eurosat (1-bit W, 32-bit A) ---
+/home/changmin/satellite_efficent/train.py:27: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with autocast(enabled=use_amp):
+/home/changmin/satellite_efficent/train.py:47: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with autocast(enabled=use_amp):
+Epoch 001/100 | Train Acc: 10.36% | Test Acc: 11.69% | Time: 101.55s | LR: 5.0e-02
+🎉 New best model saved with accuracy: 11.69%
+Epoch 002/100 | Train Acc: 10.94% | Test Acc: 10.39% | Time: 100.49s | LR: 5.0e-02
+Epoch 003/100 | Train Acc: 11.08% | Test Acc: 11.33% | Time: 100.67s | LR: 5.0e-02
+Epoch 004/100 | Train Acc: 11.50% | Test Acc: 11.33% | Time: 101.92s | LR: 5.0e-02
+Epoch 005/100 | Train Acc: 11.94% | Test Acc: 11.33% | Time: 102.38s | LR: 5.0e-02
+Epoch 006/100 | Train Acc: 12.38% | Test Acc: 11.22% | Time: 101.96s | LR: 5.0e-02
+Traceback (most recent call last):
+  File "/home/changmin/satellite_efficent/train.py", line 146, in <module>
+    parser.add_argument('--dataset', type=str, required=True, choices=['eurosat', 'uc_merced'])
+  File "/home/changmin/satellite_efficent/train.py", line 95, in main
+    
+  File "/home/changmin/satellite_efficent/train.py", line 48, in evaluate_model
+    
+  File "/home/changmin/miniconda3/envs/bnn/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/changmin/miniconda3/envs/bnn/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/changmin/satellite_efficent/src/models/efficientNet_builder.py", line 79, in forward
+    x = self.layers(x)
+  File "/home/changmin/miniconda3/envs/bnn/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/changmin/miniconda3/envs/bnn/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/changmin/miniconda3/envs/bnn/lib/python3.9/site-packages/torch/nn/modules/container.py", line 240, in forward
+    input = module(input)
+  File "/home/changmin/miniconda3/envs/bnn/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/changmin/miniconda3/envs/bnn/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/changmin/satellite_efficent/src/models/efficientNet_builder.py", line 41, in forward
+    return x + self.conv(x) if self.use_res else self.conv(x)
+  File "/home/changmin/miniconda3/envs/bnn/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/changmin/miniconda3/envs/bnn/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/changmin/miniconda3/envs/bnn/lib/python3.9/site-packages/torch/nn/modules/container.py", line 240, in forward
+    input = module(input)
+  File "/home/changmin/miniconda3/envs/bnn/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/changmin/miniconda3/envs/bnn/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/changmin/satellite_efficent/src/models/efficientNet_builder.py", line 20, in forward
+    return x*self.se(x)
+  File "/home/changmin/miniconda3/envs/bnn/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/changmin/miniconda3/envs/bnn/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/changmin/miniconda3/envs/bnn/lib/python3.9/site-packages/torch/nn/modules/container.py", line 240, in forward
+    input = module(input)
+  File "/home/changmin/miniconda3/envs/bnn/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/changmin/miniconda3/envs/bnn/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/changmin/miniconda3/envs/bnn/lib/python3.9/site-packages/torch/nn/modules/conv.py", line 554, in forward
+    return self._conv_forward(input, self.weight, self.bias)
+  File "/home/changmin/miniconda3/envs/bnn/lib/python3.9/site-packages/torch/nn/modules/conv.py", line 549, in _conv_forward
+    return F.conv2d(
+KeyboardInterrupt
