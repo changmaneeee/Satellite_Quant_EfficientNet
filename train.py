@@ -14,6 +14,7 @@ from tqdm import tqdm
 from src.data_util import get_dataloader, STATS
 from src.quant_modules import clip_weights
 from src.models.efficientNet_builder import build_efficientnet
+from src.resnet_builder import build_resnet
 
 # ───────────────────────────────────────────────────────────────
 # 학습 및 평가 함수
@@ -91,13 +92,20 @@ def main(args):
     if args.model == 'efficientnet_b0':
         model = build_efficientnet(bits=args.bits, act_bits=args.act_bits, num_classes=num_classes).to(DEVICE)
     else: # elif args.model == 'resnet18':
-        raise NotImplementedError("ResNet18 builder not fully integrated yet.")
+        model = build_resnet(bits=args.bits, act_bits=args.act_bits, num_classes=num_classes).to(DEVICE)
     
     # 5. 학습 설정 (SGD 기반)
     criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
-    #optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9, weight_decay=args.weight_decay, nesterov=True)
-    optimizer = optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=1e-6)
+
+    if args.optimizer.lower() == 'sgd':
+        optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay, nesterov=True)
+        scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=1e-5)
+    elif args.optimizer.lower() == 'adamw':
+        optimizer = optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+        scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=1e-6)
+    else:
+        raise ValueError(f"Unknown optimizer: {args.optimizer}")
+    
     USE_AMP = (args.bits == 16 or args.act_bits == 16)
     scaler = GradScaler(enabled=USE_AMP)
 
@@ -141,30 +149,28 @@ def main(args):
 # 스크립트 실행 지점 (Entry Point)
 # ───────────────────────────────────────────────────────────────
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='On-board AI Quantization Experiment')
+    parser = argparse.ArgumentParser(description='Unified Training Script for Quantization Analysis')
     
     # 실험 제어 인자
     parser.add_argument('--dataset', type=str, required=True, choices=['eurosat', 'uc_merced'])
-    parser.add_argument('--model', type=str, default='efficientnet_b0', choices=['efficientnet_b0'])
+    parser.add_argument('--model', type=str, required=True, choices=['resnet18', 'efficientnet_b0'])
     parser.add_argument('--bits', type=int, required=True, choices=[1, 2, 4, 8, 16, 32])
     parser.add_argument('--act_bits', type=int, default=32, choices=[1, 2, 4, 8, 16, 32])
     
+    # 학습 전략 인자 (수정)
+    parser.add_argument('--optimizer', type=str, default='adamw', choices=['sgd', 'adamw'], help='Optimizer to use.')
+    
     # 하이퍼파라미터
-    parser.add_argument('--epochs', type=int, default=100)
+    parser.add_argument('--epochs', type=int, default=150)
     parser.add_argument('--batch_size', type=int, default=32)
-    parser.add_argument('--lr', type=float, default=1e-4)
-    
-
-    #parser.add_argument('--momentum', type=float, default=0.9, help='Momentum for SGD optimizer.')
-
-    parser.add_argument('--num_workers', type=int, default=4, help='Number of workers for DataLoader.')
-    
+    parser.add_argument('--lr', type=float, default=1e-4, help='Initial learning rate.')
+    parser.add_argument('--momentum', type=float, default=0.9, help='Momentum for SGD optimizer.')
     parser.add_argument('--weight_decay', type=float, default=1e-4)
-    parser.add_argument('--result_dir', type=str, default='./results')
     
     # 기타
     parser.add_argument('--seed', type=int, default=42)
-    # ...
+    parser.add_argument('--num_workers', type=int, default=min(os.cpu_count(), 8))
+    parser.add_argument('--result_dir', type=str, default='./results')
     
     args = parser.parse_args()
     main(args)

@@ -3,7 +3,13 @@
 # =================================================================
 # Onboard-AI-Quantization: Master Experiment Script
 # =================================================================
-
+# --- 0. 실행 시점의 옵티마이저 전략 확인 ---
+if [ -z "$1" ]; then
+    echo "!!!!!! ERROR: Optimizer strategy not provided. !!!!!!"
+    echo "Usage: ./run_all_experiments.sh [sgd|adamw]"
+    exit 1
+fi
+OPTIMIZER_STRATEGY=$1
 # --- 1. 실험 환경 설정 ---
 echo "INFO: Setting up experiment environment..."
 # 결과를 저장할 최상위 폴더들 생성
@@ -13,7 +19,7 @@ mkdir -p results models logs/training logs/benchmarking
 # 실험할 조합들을 배열로 정의합니다.
 # 특정 실험만 하고 싶으면, 이 리스트를 수정하면 됩니다.
 DATASET_LIST=("eurosat") # "uc_merced"도 추가 가능
-MODEL_LIST=("efficientnet_b0") # "resnet18"도 추가 가능
+MODEL_LIST=("resnet18") #  "efficientnet_b0"
 BITS_LIST=(1 2 4 8 16 32)
 # 활성화 양자화는 가중치와 동일하게 설정 (WnA n) 또는 32(Wn A32)로 실험
 # 여기서는 가중치만 양자화하는 경우(act_bits=32)를 먼저 실행
@@ -22,10 +28,23 @@ ACT_BITS_LIST=(32)
 # 공통 하이퍼파라미터
 EPOCHS=150
 BATCH_SIZE=32
-LR=0.0001  # SGD에 맞는 초기 학습률(0.05 / adamw에서는 1e-4)
-WEIGHT_DECAY=1e-4
-MOMENTUM=0.9
 NUM_WORKERS=4
+
+echo "INFO: Selected optimizer strategy: ${OPTIMIZER_STRATEGY}"
+if [ "$OPTIMIZER_STRATEGY" = "sgd" ]; then
+    OPTIMIZER_ARGS="--optimizer sgd --momentum 0.9"
+    WEIGHT_DECAY=5e-4
+    LR_LOW_BIT=0.005
+    LR_HIGH_BIT=0.05
+elif [ "$OPTIMIZER_STRATEGY" = "adamw" ]; then
+    OPTIMIZER_ARGS="--optimizer adamw"
+    WEIGHT_DECAY=1e-4
+    LR_LOW_BIT=0.0001
+    LR_HIGH_BIT=0.0001
+else
+    echo "ERROR: Invalid optimizer strategy '$1'. Choose 'sgd' or 'adamw'."
+    exit 1
+fi
 
 # --- 3. 전체 학습 실행 ---
 echo ""
@@ -59,6 +78,13 @@ for DATASET in "${DATASET_LIST[@]}"; do
                 # fi
                 # =================================================================                
                 # 로그 파일 이름 생성
+                                # 비트 수에 따른 차등 학습률 설정
+                if [ "$BITS" -le 4 ]; then
+                    LR=$LR_LOW_BIT
+                else
+                    LR=$LR_HIGH_BIT
+                fi
+
                 LOG_FILE="logs/training/${DATASET}_${MODEL}_${BITS}b_w${ACT_BITS}a.log"
                 
                 echo ""
