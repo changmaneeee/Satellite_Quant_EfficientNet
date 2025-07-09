@@ -18,7 +18,7 @@ from src.models.efficientNet_builder import build_efficientnet
 # ───────────────────────────────────────────────────────────────
 # 학습 및 평가 함수
 # ───────────────────────────────────────────────────────────────
-def train_one_epoch(model, loader, criterion, optimizer, scaler, device, use_amp, bits_to_clip):
+def train_one_epoch(model, loader, criterion, optimizer, scaler, device, use_amp, bits_to_clip, epoch_str):
     model.train()
     running_loss, correct, total = 0.0, 0, 0
 
@@ -46,7 +46,7 @@ def train_one_epoch(model, loader, criterion, optimizer, scaler, device, use_amp
         )
     return running_loss / total, 100 * correct / total
 
-def evaluate_model(model, loader, criterion, device, use_amp):
+def evaluate_model(model, loader, criterion, device, use_amp, epoch_str):
     model.eval()
     running_loss, correct, total = 0.0, 0, 0
 
@@ -95,8 +95,9 @@ def main(args):
     
     # 5. 학습 설정 (SGD 기반)
     criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
-    optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9, weight_decay=args.weight_decay, nesterov=True)
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=1e-5)
+    #optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9, weight_decay=args.weight_decay, nesterov=True)
+    optimizer = optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=1e-6)
     USE_AMP = (args.bits == 16 or args.act_bits == 16)
     scaler = GradScaler(enabled=USE_AMP)
 
@@ -151,14 +152,14 @@ if __name__ == '__main__':
     # 하이퍼파라미터
     parser.add_argument('--epochs', type=int, default=100)
     parser.add_argument('--batch_size', type=int, default=32)
-    parser.add_argument('--lr', type=float, default=0.1)
+    parser.add_argument('--lr', type=float, default=1e-4)
     
 
-    parser.add_argument('--momentum', type=float, default=0.9, help='Momentum for SGD optimizer.')
+    #parser.add_argument('--momentum', type=float, default=0.9, help='Momentum for SGD optimizer.')
 
     parser.add_argument('--num_workers', type=int, default=4, help='Number of workers for DataLoader.')
     
-    parser.add_argument('--weight_decay', type=float, default=5e-4)
+    parser.add_argument('--weight_decay', type=float, default=1e-4)
     parser.add_argument('--result_dir', type=str, default='./results')
     
     # 기타

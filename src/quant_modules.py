@@ -15,19 +15,34 @@ class QuantizeSTE(torch.autograd.Function):
             return alpha * tensor.sign()
         
         if bits == 2:
-            delta = 0.7 * tensor.abs().mean()
+            alpha2 = tensor.abs().mean()
+            delta = 0.7 * alpha2
             output = torch.zeros_like(tensor)
             output[tensor < delta] = 1.0
             output[tensor > -delta] = -1.0
-            return output
+            return alpha2 * output
         
-        q_min, q_max = 0., 2.**bits -1.
-        t_min, t_max = tensor.min(), tensor.max()
-        scale = (t_max - t_min) / (q_max - q_min)
+        # q_min, q_max = 0., 2.**bits -1.
+        # t_min, t_max = tensor.min(), tensor.max()
+        # scale = (t_max - t_min) / (q_max - q_min)
+        # if scale < 1e-10: return tensor
+        # zero_point = torch.round(q_min - t_min / scale)
+        # q_tensor = torch.round(tensor / scale + zero_point).clamp(q_min, q_max)
+        # deq_tensor = (q_tensor - zero_point) * scale
+        # return deq_tensor
+        # q_min, q_max를 음수 포함하도록 변경
+        q_min = -2.**(bits - 1)
+        q_max = 2.**(bits - 1) - 1
+        
+        # 1. 스케일(scale) 계산 (min/max 대신 abs().max() 사용)
+        abs_max = tensor.abs().max()
+        scale = abs_max / q_max
         if scale < 1e-10: return tensor
-        zero_point = torch.round(q_min - t_min / scale)
-        q_tensor = torch.round(tensor / scale + zero_point).clamp(q_min, q_max)
-        deq_tensor = (q_tensor - zero_point) * scale
+
+        # 2. 양자화 및 역양자화 (zero_point 불필요)
+        q_tensor = torch.round(tensor / scale).clamp(q_min, q_max)
+        deq_tensor = q_tensor * scale
+        
         return deq_tensor
     
 
