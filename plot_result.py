@@ -57,7 +57,7 @@ def parse_log_file(filepath):
 
 # plot_results.py (디버깅 코드가 추가된 버전)
 
-def load_all_logs(log_dir='./logs/training'):
+def load_all_logs(log_dir='./logs_nwpu/training'):
     """지정된 폴더의 모든 로그 파일을 읽어 하나의 데이터프레임으로 합칩니다."""
     all_dfs = []
     

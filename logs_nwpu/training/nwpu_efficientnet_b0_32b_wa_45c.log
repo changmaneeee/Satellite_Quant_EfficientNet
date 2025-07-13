@@ -1,0 +1,8 @@
+
+--- Loading NWPU Dataset (45 classes) ---
+Traceback (most recent call last):
+  File "/home/changmin/satellite_efficent/train_nwpu.py", line 164, in <module>
+    main(args)
+  File "/home/changmin/satellite_efficent/train_nwpu.py", line 89, in main
+    train_loader, label_map = get_nwpu_dataloader(args.num_classes, args.batch_size, train=True, num_workers=args.num_workers)
+ValueError: too many values to unpack (expected 2)
